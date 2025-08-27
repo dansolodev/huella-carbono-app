@@ -4,4 +4,12 @@
     <string name="dashboard_label">Dashboard</string>
     <string name="carbon_footprint_title">Carbon footprint information</string>
     <string name="carbon_footprint_information">La huella de carbono es un indicador ambiental que mide la cantidad total de gases de efecto invernadero (GEI), expresada en toneladas de CO2 equivalente (CO2e), que son emitidos directa o indirectamente por una actividad, organización, producto o persona. Sirve para cuantificar el impacto sobre el cambio climático y es una herramienta para gestionar y reducir las emisiones, a través de acciones como la eficiencia energética, el uso de transporte sostenible y la reducción del consumo.\n\n¿Qué mide la huella de carbono?\nLa huella de carbono incluye gases como el dióxido de carbono (CO2), el metano (CH4) y el óxido nitroso (N2O), que son los principales contribuyentes al calentamiento globa</string>
+    <string name="electricity_label">Electricidad</string>
+    <string name="electricity_label_unit">kWh</string>
+    <string name="transport_label">Transporte</string>
+    <string name="transport_label_unit">km</string>
+    <string name="gas_label">Gas LP</string>
+    <string name="gas_label_unit">kg</string>
+    <string name="consumption_question">Cuanto consumes en %1$s al mes?</string>
+    <string name="consumption_carbon_footprint_result">Tu consumo de %1$s genera una huella de carbon de %2$s kg CO₂e al mes</string>
 </resources>
