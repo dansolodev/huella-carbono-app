@@ -38,11 +38,19 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 Scaffold(
                     bottomBar = {
-                        // TODO: Revisar la navegación
                         BottomNavigationBar(
                             items = navigationItemsList,
                             currentRoute = routeSelected,
-                            onNavigationItemSelected = { routeSelected = it.route}
+                            onNavigationItemSelected = {
+                                routeSelected = it.route
+                                navController.navigate(route = routeSelected) {
+                                    popUpTo(route = navController.graph.startDestinationRoute.orEmpty()) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
                         )
                     }
                 ) {
