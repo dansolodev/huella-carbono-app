@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -37,10 +38,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.fs.huellacarbonoapp.R
 import com.fs.huellacarbonoapp.ui.components.ItemInputInformation
+import com.fs.huellacarbonoapp.ui.screens.DashboardScreenConstants.EMPTY_STRING
+import com.fs.huellacarbonoapp.ui.screens.DashboardScreenConstants.SCROLL_TOP_START_POSITION
+import com.fs.huellacarbonoapp.ui.screens.DashboardScreenConstants.ZERO_DOUBLE
 import com.fs.huellacarbonoapp.ui.theme.HuellaCarbonoAppTheme
 import com.fs.huellacarbonoapp.ui.theme.Typography
+import com.fs.huellacarbonoapp.utils.electricityEmissionsKgCO2e
+import com.fs.huellacarbonoapp.utils.formatWithTwoDecimalsToString
+import com.fs.huellacarbonoapp.utils.gasolineEmissionsFromKmKgCO2e
+import com.fs.huellacarbonoapp.utils.lpgEmissionsKgCO2e
+import com.fs.huellacarbonoapp.utils.monthlyToAnnual
+import com.fs.huellacarbonoapp.utils.orZero
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,26 +80,24 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
-            var electricityInputValue by remember { mutableStateOf("") }
-            var totalElectricityConsumption by remember { mutableStateOf("") }
+            var electricityInputValue by remember { mutableStateOf(value = EMPTY_STRING) }
+            var totalElectricityConsumption by remember { mutableDoubleStateOf(value = ZERO_DOUBLE) }
 
-            var transportInputValue by remember { mutableStateOf("") }
-            var transportConsumption by remember { mutableStateOf("") }
+            var transportInputValue by remember { mutableStateOf(value = EMPTY_STRING) }
+            var transportConsumption by remember { mutableDoubleStateOf(value = ZERO_DOUBLE) }
 
-            var gasLPInputValue by remember { mutableStateOf("") }
-            var gasLPConsumption by remember { mutableStateOf("") }
+            var gasLPInputValue by remember { mutableStateOf(value = EMPTY_STRING) }
+            var gasLPConsumption by remember { mutableDoubleStateOf(value = ZERO_DOUBLE) }
 
             AnimatedVisibility(
-                visible = totalElectricityConsumption.isNotBlank() &&
-                        transportConsumption.isNotBlank() && gasLPConsumption.isNotBlank()
+                visible = totalElectricityConsumption != ZERO_DOUBLE &&
+                        transportConsumption != ZERO_DOUBLE && gasLPConsumption != ZERO_DOUBLE
             ) {
 
-                coroutineScope.launch { scrollState.animateScrollTo(0) }
+                coroutineScope.launch { scrollState.animateScrollTo(value = SCROLL_TOP_START_POSITION) }
 
-                val totalCO2PerYear =
-                    totalElectricityConsumption.toFloat() + transportConsumption.toFloat() + gasLPConsumption.toFloat()
-                val strTotalCO2PerYear =
-                    String.format(locale = Locale.ROOT, format = "%.02f", totalCO2PerYear)
+                val totalCO2 = totalElectricityConsumption + transportConsumption + gasLPConsumption
+
                 Row(
                     modifier = Modifier.padding(8.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -103,7 +110,7 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
                     Text(
                         text = stringResource(
                             R.string.total_carbon_footprint_result_per_year,
-                            strTotalCO2PerYear
+                            totalCO2.monthlyToAnnual().formatWithTwoDecimalsToString()
                         ),
                         style = Typography.titleMedium,
                         modifier = Modifier.weight(0.85f),
@@ -119,18 +126,20 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
                     electricityInputValue = it
                 },
                 onSendButtonAction = {
-                    totalElectricityConsumption = calculateCarbonFootPrint(
-                        amountQuantityCO2 = 0.455f,
-                        totalConsumption = it.toFloatOrNull() ?: 0f
+                    totalElectricityConsumption = electricityEmissionsKgCO2e(
+                        kWh = it.toDoubleOrNull().orZero()
                     )
                 },
                 titleTypeIdRes = R.string.electricity_label,
                 labelInputTypeIdRes = R.string.electricity_label_unit,
                 iconVectorType = Icons.Outlined.WbIncandescent,
                 backgroundColor = Color.Yellow,
-                resultCalculated = totalElectricityConsumption
+                resultCalculated = if (totalElectricityConsumption != ZERO_DOUBLE) {
+                    totalElectricityConsumption.formatWithTwoDecimalsToString()
+                } else {
+                    null
+                }
             )
-
 
             ItemInputInformation(
                 value = transportInputValue,
@@ -138,15 +147,19 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
                     transportInputValue = it
                 },
                 onSendButtonAction = {
-                    transportConsumption = calculateCarbonFootPrintByTransport(
-                        totalConsumption = it.toFloatOrNull() ?: 0f
+                    transportConsumption = gasolineEmissionsFromKmKgCO2e(
+                        km = it.toDoubleOrNull().orZero()
                     )
                 },
                 titleTypeIdRes = R.string.transport_label,
                 labelInputTypeIdRes = R.string.transport_label_unit,
                 iconVectorType = Icons.Outlined.EmojiTransportation,
                 backgroundColor = Color.Green,
-                resultCalculated = transportConsumption
+                resultCalculated = if (transportConsumption != ZERO_DOUBLE) {
+                    transportConsumption.formatWithTwoDecimalsToString()
+                } else {
+                    null
+                }
             )
 
             ItemInputInformation(
@@ -155,32 +168,29 @@ fun DashboardScreen(modifier: Modifier = Modifier) {
                     gasLPInputValue = it
                 },
                 onSendButtonAction = {
-                    gasLPConsumption = calculateCarbonFootPrint(
-                        amountQuantityCO2 = 3.02f,
-                        totalConsumption = it.toFloatOrNull() ?: 0f
+                    gasLPConsumption = lpgEmissionsKgCO2e(
+                        kgLpg = it.toDoubleOrNull().orZero()
                     )
                 },
                 titleTypeIdRes = R.string.gas_label,
                 labelInputTypeIdRes = R.string.gas_label_unit,
                 iconVectorType = Icons.Outlined.Propane,
                 backgroundColor = Color.Blue,
-                resultCalculated = gasLPConsumption
+                resultCalculated = if (gasLPConsumption != ZERO_DOUBLE) {
+                    gasLPConsumption.formatWithTwoDecimalsToString()
+                } else {
+                    null
+                }
             )
             Spacer(modifier = Modifier.height(height = 80.dp))
         }
     }
 }
 
-private fun calculateCarbonFootPrint(amountQuantityCO2: Float, totalConsumption: Float): String {
-    val totalCO2PerMonth = (totalConsumption / 1) * amountQuantityCO2
-    val totalCO2 = totalCO2PerMonth * 12
-    return String.format(locale = Locale.ROOT, format = "%.02f", totalCO2)
-}
-
-private fun calculateCarbonFootPrintByTransport(totalConsumption: Float): String {
-    val totalCO2PerMonth = (1000f / totalConsumption) * 2.31
-    val totalCO2 = totalCO2PerMonth * 12
-    return String.format(locale = Locale.ROOT, format = "%.02f", totalCO2)
+internal object DashboardScreenConstants {
+    const val SCROLL_TOP_START_POSITION = 0
+    const val ZERO_DOUBLE = 0.0
+    const val EMPTY_STRING = ""
 }
 
 @Preview(

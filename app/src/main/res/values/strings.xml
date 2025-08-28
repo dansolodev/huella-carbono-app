@@ -11,7 +11,7 @@
     <string name="gas_label">Gas LP</string>
     <string name="gas_label_unit">kg</string>
     <string name="consumption_question">Cuanto consumes en %1$s al mes?</string>
-    <string name="consumption_carbon_footprint_result">Tu consumo de %1$s genera una huella de carbon de %2$s kg CO₂e al año</string>
-    <string name="total_carbon_footprint_result_per_year">Por año generas una huella de cabon total de: %1$s tCO₂</string>
+    <string name="consumption_carbon_footprint_result">Tu consumo de %1$s genera una huella de carbon de %2$s kg CO₂e al mes</string>
+    <string name="total_carbon_footprint_result_per_year">Por año generas una huella de cabon total de: %1$s kg CO2e</string>
     <string name="cd_icon_co2">Icono para presentar la información total de CO2</string>
 </resources>
